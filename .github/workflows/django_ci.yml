@@ -1,0 +1,109 @@
+name: Django CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  code-check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16.3
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: "stock_db"
+        ports: ['5432:5432']
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: 'pip'
+
+      - name: Install Dependencies (with Poetry)
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pipx ensurepath
+          poetry install --with dev --sync
+
+      - name: Lint
+        run: poetry run task lint
+
+  test:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.13"
+          cache: "pip"
+
+      - name: Install Dependencies (with Poetry)
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pipx ensurepath
+          poetry install --with dev --sync
+
+      - name: Run Tests
+        env:
+          DJANGO_SETTINGS_MODULE: app.settings
+          SECRET_KEY: ${{ secrets.DJ_SECRET_KEY }}
+          DEBUG: "False"
+          ALLOWED_HOSTS: "127.0.0.1"
+          POSTGRES_DB: "stock_db"
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_HOST: "localhost"
+          POSTGRES_PORT: "5432"
+          REDIS_HOST: '127.0.0.1'
+          REDIS_PORT: '6379'
+          REDIS_DB: '1'
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          REDIS_USERNAME: ${{ secrets.REDIS_USERNAME }}
+        run: |
+          poetry run task test
+
+  validate-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Validate docker-compose
+        run: docker-compose config
+
+      - name: Build Docker images
+        run: docker-compose build
+
+      - name: Test Docker containers
+        run: |
+          docker-compose up -d
+          sleep 10
+          docker-compose ps
+          docker-compose logs
+          docker-compose down
