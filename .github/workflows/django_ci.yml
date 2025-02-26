@@ -21,6 +21,12 @@ jobs:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_DB: "stock_db"
         ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -29,13 +35,16 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-          cache: 'pip'
+          cache: "poetry"
 
-      - name: Install Dependencies (with Poetry)
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pipx ensurepath
-          poetry install --with dev --sync
+      - name: Install Poetry
+        run: pip install --user poetry
+
+      - name: Configure Poetry
+        run: poetry config virtualenvs.in-project true
+
+      - name: Install Dependencies
+        run: poetry install --with dev --sync
 
       - name: Lint
         run: poetry run task lint
@@ -53,6 +62,19 @@ jobs:
           --health-timeout 5s
           --health-retries 3
 
+      postgres:
+        image: postgres:16.3
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: "stock_db"
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -61,13 +83,28 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.13"
-          cache: "pip"
+          cache: "poetry"
 
-      - name: Install Dependencies (with Poetry)
+      - name: Install Poetry
+        run: pip install --user poetry
+
+      - name: Configure Poetry
+        run: poetry config virtualenvs.in-project true
+
+      - name: Install Dependencies
+        run: poetry install --with dev --sync
+
+      - name: Wait for PostgreSQL
         run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pipx ensurepath
-          poetry install --with dev --sync
+          echo "Waiting for PostgreSQL to be ready..."
+          for i in {1..10}; do
+            if PGPASSWORD=${{ secrets.POSTGRES_PASSWORD }} psql -h localhost -U ${{ secrets.POSTGRES_USER }} -d stock_db -c '\q' 2>/dev/null; then
+              echo "PostgreSQL is ready!"
+              break
+            fi
+            echo "PostgreSQL not ready yet..."
+            sleep 2
+          done
 
       - name: Run Tests
         env:
@@ -85,8 +122,7 @@ jobs:
           REDIS_DB: '1'
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
           REDIS_USERNAME: ${{ secrets.REDIS_USERNAME }}
-        run: |
-          poetry run task test
+        run: poetry run task test
 
   validate-docker:
     runs-on: ubuntu-latest
