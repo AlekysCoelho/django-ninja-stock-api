@@ -1,5 +1,5 @@
 services:
-  database:
+  postgres:
     container_name: django_db
     image: postgres:16.3-alpine3.20
     restart: always
@@ -38,7 +38,7 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - REDIS_USERNAME=${REDIS_USERNAME}
     depends_on:
-      - database
+      - postgres
       - redis
     networks:
       - backend
