@@ -48,6 +48,8 @@ omit = [
     "app/migrations/*",
     "app/tests/*",
     "app/*/__init__.py",
+    "app/migrations/*",
+    "app/accounts/forms.py",
     "app/asgi.py",
     "app/wsgi.py",
     "manage.py"
@@ -78,7 +80,7 @@ format = "ruff check . --fix && ruff format ."
 run = "python3 manage.py runserver"
 create_app = "python3 manage.py startapp"
 pre_test = "task lint"
-test = "pytest app/ -s -x --cov=app -vv"
+test = "pytest tests/ -s -x --cov=app -vv"
 post_test = "coverage html"
 
 [build-system]
