@@ -1,44 +1,47 @@
 FROM python:3.13-slim
 
-# Definir variáveis de ambiente
+# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# Instalar dependências do sistema
+# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Criar usuário não-root
+# Create non-root user
 RUN useradd --create-home --shell /bin/bash appuser
 
-# Definir diretório de trabalho
+# Set working directory
 WORKDIR /src
 
-# Instalar Poetry
+# Install Poetry
 RUN pip install poetry
 
-# Copiar os arquivos do Poetry primeiro para otimizar cache
+# Copy Poetry files first to optimize cache
 COPY pyproject.toml /src/
 COPY poetry.lock /src/
 
-# Instalar dependências sem criar ambiente virtual
+# Install dependencies without creating virtual environment
 RUN poetry config virtualenvs.create false && poetry install --no-root --with dev && poetry sync
 
-# Copiar o restante do código para manter a estrutura correta
+# Copy the rest of the code to maintain the correct structure
 COPY app /src/app/
 COPY tests /src/tests/
 COPY manage.py /src/
+COPY entrypoint.sh /src/
 
-# Ajustar permissões para o usuário não-root
+# Give execution permission to entrypoint
+RUN chmod +x /src/entrypoint.sh
+
+# Adjust permissions for the non-root user
 RUN chown -R appuser:appuser /src
 
-# Trocar para o usuário não-root
+# Switch to the non-root user
 USER appuser
 
-# Expor a porta do Django
+# Expose Django port
 EXPOSE 8000
 
-# Comando de inicialização
-CMD ["python", "manage.py", "runserver"]
+CMD ["./entrypoint.sh"]

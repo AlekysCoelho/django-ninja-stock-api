@@ -17,8 +17,10 @@ services:
       - backend
 
   django:
+    container_name: django_stock_api
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    restart: always
+    # command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/app
     ports:
