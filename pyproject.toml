@@ -65,7 +65,7 @@ directory = "coverage_html_report"
 
 [tool.ruff]
 line-length = 120
-exclude = ["./app/.*migrations"]
+exclude = ["app/**/migrations"]
 
 [tool.ruff.lint]
 select = ["I", "F", "E", "W", "PL", "PT"]
