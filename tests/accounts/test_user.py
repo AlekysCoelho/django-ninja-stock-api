@@ -27,7 +27,7 @@ class TestUser:
         )  # build to avoid saving to the db
         with pytest.raises(IntegrityError) as execinfo:
             user2.save()
-        assert "UNIQUE constraint failed: stock_users.email" in str(execinfo.value)
+        assert "stock_users_email_key" in str(execinfo.value)
 
     def test_user_str(self, new_user: User):
         """Test the string representation of a user."""
