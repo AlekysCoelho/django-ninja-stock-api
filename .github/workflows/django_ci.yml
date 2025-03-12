@@ -98,11 +98,11 @@ jobs:
       postgres:
         image: postgres:16.3
         env:
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_DB: "test_db"
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: stock_db
         ports: 
-          - "5432:5432"
+          - 5432:5432
         options: >-
           --health-cmd "pg_isready -U postgres"
           --health-interval 10s
@@ -134,7 +134,9 @@ jobs:
             poetry-${{ runner.os }}-
 
       - name: Configure Poetry Environment
-        run: poetry env use python3
+        run: |
+          poetry env use python3
+          poetry env info
 
       - name: Install Dependencies
         run: poetry install --with dev
@@ -143,7 +145,7 @@ jobs:
         run: |
           echo "Waiting for PostgreSQL to be ready..."
           for i in {1..10}; do
-            if PGPASSWORD=${{ secrets.POSTGRES_PASSWORD }} psql -h ${{ vars.POSTGRES_HOST }} -p ${{ vars.POSTGRES_PORT }} -U ${{ secrets.POSTGRES_USER }} -d ${{ vars.POSTGRES_DB }} -c '\q' 2>/dev/null; then
+            if PGPASSWORD=postgres psql -h localhost -p 5432 -U postgres -d stock_db -c '\q' 2>/dev/null; then
               echo "PostgreSQL is ready!"
               break
             fi
@@ -153,34 +155,24 @@ jobs:
 
       - name: Validate Environment Variables
         run: |
-          echo "Checking Database Configuration..."
-          test -n "${{ vars.POSTGRES_DB }}" || (echo "POSTGRES_DB is not set" && exit 1)
-          test -n "${{ vars.POSTGRES_HOST }}" || (echo "POSTGRES_HOST is not set" && exit 1)
-          test -n "${{ vars.POSTGRES_PORT }}" || (echo "POSTGRES_PORT is not set" && exit 1)
-          
-          echo "Checking Redis Configuration..."
-          test -n "${{ vars.REDIS_HOST }}" || (echo "REDIS_HOST is not set" && exit 1)
-          test -n "${{ vars.REDIS_PORT }}" || (echo "REDIS_PORT is not set" && exit 1)
-          test -n "${{ vars.REDIS_DB }}" || (echo "REDIS_DB is not set" && exit 1)
-          
           echo "Environment validation successful!"
 
       - name: Run Tests
         env:
           DJANGO_SETTINGS_MODULE: app.settings
-          SECRET_KEY: ${{ secrets.DJ_SECRET_KEY }}
+          SECRET_KEY: "test-key-Django-1234556789"
           DEBUG: "False"
           ALLOWED_HOSTS: "127.0.0.1"
-          POSTGRES_DB: ${{vars.POSTGRES_DB}}
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_HOST: ${{vars.POSTGRES_HOST}}
-          POSTGRES_PORT: ${{vars.POSTGRES_PORT}}
-          REDIS_HOST: ${{vars.REDIS_HOST}}
-          REDIS_PORT: ${{vars.REDIS_PORT}}
-          REDIS_DB: ${{vars.REDIS_DB}}
-          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-          REDIS_USERNAME: ${{ secrets.REDIS_USERNAME }}
+          POSTGRES_DB: "stock_db"
+          POSTGRES_USER: "postgres"
+          POSTGRES_PASSWORD: "postgres"
+          POSTGRES_HOST: "localhost"
+          POSTGRES_PORT: "5132"
+          REDIS_HOST: "localhost"
+          REDIS_PORT: "6379"
+          REDIS_DB: "1"
+          REDIS_PASSWORD: "redis"
+          REDIS_USERNAME: "default"
         run: poetry run task test
 
   validate-docker:
