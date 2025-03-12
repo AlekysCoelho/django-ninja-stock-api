@@ -78,7 +78,6 @@ class TestUser:
         self, request: HttpRequest, super_user_factory: SuperUserFactory, db
     ):
         """Test that a superuser can only log in with email."""
-        # cache.clear()
         password = "password123"
 
         superuser = super_user_factory(
@@ -87,12 +86,6 @@ class TestUser:
             password=password,
             is_superuser=True,
         )
-
-        # Debug para verificar o usuário criado
-        print("\n=== User Debug ===")
-        print(f"Username: {superuser.username}")
-        print(f"Email: {superuser.email}")
-        print(f"Is active: {superuser.is_active}")
 
         authenticated_superuser = authenticate_backend.authenticate(
             request=request,
@@ -108,18 +101,12 @@ class TestUser:
     ):
         """Test that a superuser cannot log in with username."""
         password = "password123"
-        superuser = super_user_factory(
+        superuser = super_user_factory(  # noqa F841
             username="superuser",
             email="superuser@example.com",
             password=password,
             is_superuser=True,
         )
-
-        # Debug para verificar o usuário criado
-        print("\n=== User Debug ===")
-        print(f"Username: {superuser.username}")
-        print(f"Email: {superuser.email}")
-        print(f"Is active: {superuser.is_active}")
 
         factory = RequestFactory()
         request = factory.get("/")
