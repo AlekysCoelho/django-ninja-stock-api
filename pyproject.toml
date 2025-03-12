@@ -45,9 +45,9 @@ branch = true
 source = ["app"]
 
 omit = [
-    "app/migrations/*",
-    "app/tests/*",
+    "app/accounts/migrations/*",
     "app/*/__init__.py",
+    "app/tests/*",
     "app/migrations/*",
     "app/accounts/forms.py",
     "app/asgi.py",
