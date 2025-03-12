@@ -1,4 +1,3 @@
-import logging
 import re
 
 from django.contrib import messages
@@ -9,7 +8,7 @@ from django.utils.translation import gettext_lazy as _
 
 from app.logs import get_logger
 
-security_logger = get_logger("security", logging.warning)
+security_logger = get_logger("security", level=30)
 
 
 class SecurityHeadersMiddleware:

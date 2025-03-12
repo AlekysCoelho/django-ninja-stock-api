@@ -1,4 +1,3 @@
-import logging
 import re
 from typing import Optional, Type
 
@@ -12,8 +11,8 @@ from django.utils.translation import gettext_lazy as _
 from app.accounts.models import User as CustomUser
 from app.logs import get_logger
 
-security_logger = get_logger("security", logging.INFO)
-info_logger = get_logger("test", logging.INFO)
+security_logger = get_logger("security")
+info_logger = get_logger("test")
 
 User = get_user_model()
 
@@ -81,9 +80,7 @@ class EmailOrUsernameModelBackend(ModelBackend):
                             messages.add_message(
                                 request,
                                 constants.ERROR,
-                                _(
-                                    "Administrators must log in using their email address."
-                                ),
+                                _("Administrators must log in using their email address."),
                             )
                             return None
                         security_logger.warning(
