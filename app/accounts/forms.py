@@ -1,29 +1,24 @@
 import re
 
 from django import forms
-from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import (
-    AuthenticationForm,
-    UserChangeForm,
-    UserCreationForm,
-)
-from django.contrib.messages import constants
+from django.contrib.auth.forms import AdminUserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import UserChangeForm as BaseUserChangeForm
 from django.utils.translation import gettext_lazy as _
 
 User = get_user_model()
 
 
-class UserCreationForm(UserCreationForm):
-    class Meta:
+class UserCreationForm(AdminUserCreationForm):
+    class Meta(AdminUserCreationForm.Meta):
         model = User
-        fields = UserCreationForm.Meta.fields + ("bio",)
+        fields = AdminUserCreationForm.Meta.fields + ("bio",)
 
 
-class UserChangeForm(UserChangeForm):
+class UserChangeForm(BaseUserChangeForm):
     class Meta:
         model = User
-        fields = UserCreationForm.Meta.fields + ("bio",)
+        fields = ("username", "email", "password", "bio")
 
 
 class EmailOrUsernameAuthenticationForm(AuthenticationForm):
@@ -50,22 +45,21 @@ class EmailOrUsernameAuthenticationForm(AuthenticationForm):
 
     error_messages = {
         "invalid_login": _(
-            "Please enter a correct %(username)s and password.Please not that both fields are case sensitive."
+            "Please enter a correct %(username)s and password. Please note that both fields are case sensitive."
         ),
-        "superuser_email_required": _("Super user must log in using email."),
-        "inactive": _("This accounts is inactive."),
+        "superuser_email_required": _("Superuser must log in using email."),
+        "inactive": _("This account is inactive."),
     }
 
     def clean(self):
-        username = self.cleaned_data.get("username").strip()
-        password = self.cleaned_data.get("password").strip()
+        username = self.cleaned_data.get("username", "").strip()
+        password = self.cleaned_data.get("password", "").strip()
 
         if username and password:
             if len(username) > 254 or len(password) > 50:
-                messages.add_message(
-                    self.request,
-                    constants.ERROR,
-                    _(self.error_messages["invalid_login"]),
+                raise forms.ValidationError(
+                    self.error_messages["invalid_login"],
+                    code="invalid_login",
                 )
 
             try:
@@ -74,25 +68,22 @@ class EmailOrUsernameAuthenticationForm(AuthenticationForm):
                         r"^(?=.{3,254}$)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
                         username,
                     ):
-                        messages.add_message(
-                            self.request,
-                            constants.ERROR,
-                            _(self.error_messages["invalid_login"]),
+                        raise forms.ValidationError(
+                            self.error_messages["invalid_login"],
+                            code="invalid_login",
                         )
                     user = User.objects.get(email=username)
                 else:
                     user = User.objects.get(username=username)
                     if user.is_superuser:
-                        messages.add_message(
-                            self.request,
-                            constants.WARNING,
-                            _(self.error_messages["superuser_email_requered"]),
+                        raise forms.ValidationError(
+                            self.error_messages["superuser_email_required"],
+                            code="superuser_email_required",
                         )
             except User.DoesNotExist:
-                messages.add_message(
-                    self.request,
-                    constants.ERROR,
-                    _(self.error_messages["invalid_login"]),
+                raise forms.ValidationError(
+                    self.error_messages["invalid_login"],
+                    code="invalid_login",
                 )
 
-        return self.cleaned_data
+        return super().clean()

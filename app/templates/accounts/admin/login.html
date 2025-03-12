@@ -1,0 +1,97 @@
+{% extends "admin/base_site.html" %}
+{% comment %} {% extends "accounts/admin/base_stock.html" %} {% endcomment %}
+{% load i18n static %}
+
+{% block extrastyle %}{{ block.super }}
+ {# Google Fonts #}
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ <link rel="stylesheet" href="{% static 'css/roboto-font.css' %}">
+ {# Tailwind CSS #}
+ <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+{{ form.media }}
+{% endblock %}
+
+{% comment %} {% block bodyclass %}{{ block.super }} login{% endblock %} {% endcomment %}
+
+{% block usertools %}{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block nav-sidebar %}{% endblock %}
+
+{% block content_title %}{% endblock %}
+
+{% block nav-breadcrumbs %}{% endblock %}
+
+{% block content %}
+{% if form.errors and not form.non_field_errors %}
+<p class="errornote">
+{% blocktranslate count counter=form.errors.items|length %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktranslate %}
+</p>
+{% endif %}
+
+{% if form.non_field_errors %}
+{% for error in form.non_field_errors %}
+<p class="errornote">
+    {{ error }}
+</p>
+{% endfor %}
+{% endif %}
+
+<div class="flex justify-center items-center text-white w-full h-screen">
+
+{% if user.is_authenticated %}
+<p class="errornote">
+{% blocktranslate trimmed %}
+    You are authenticated as {{ username }}, but are not authorized to
+    access this page. Would you like to login to a different account?
+{% endblocktranslate %}
+</p>
+{% endif %}
+
+<div class="w-1/2 max-w-xl h-3/4 flex flex-col justify-center items-center gap-y-24 border border-cyan-500 rounded-xl shadow-lg shadow-cyan-600">
+
+<div class="w-3/4 flex flex-col content-center justify-center">
+<form action="{{ app_path }}" method="post" id="login-form" class="h-full flex flex-col justify-items-start items-center font-Lato gap-y-12">{% csrf_token %} 
+  <div class="w-full flex flex-col justify-items-start items-center gap-y-3.5">
+    {{ form.username.errors }}
+
+    <input 
+        type="email" 
+        name="{{ form.username.html_name }}" 
+        id="{{ form.username.id_for_label }}"
+        autocomplete="email" required
+        class="w-full h-10 text-sm pl-2 !text-gray-300 tracking-widest !bg-transparent border !rounded-md !border-cyan-600 hover:!border-cyan-400 focus:border-cyan-500 focus:ring-cyan-500 focus:ring-1 focus:outline-none resize-none "
+        placeholder="Type your email..." 
+    />
+  
+    {{ form.password.errors }}
+    <input 
+        type="password" 
+        name="{{ form.password.html_name }}" 
+        id="{{ form.password.id_for_label }}"
+        autocomplete="current-password" required
+        class="w-full h-10 pl-2 !text-gray-300 !tracking-widest !bg-transparent !border !rounded-md !border-cyan-600 hover:!border-cyan-400 focus:border-cyan-500 focus:ring-cyan-500 focus:ring-1 focus:outline-none resize-none "
+        placeholder="Type your password..." 
+    />
+    <input type="hidden" name="next" value="{{ next }}">
+  </div>
+  {% url 'admin_password_reset' as password_reset_url %}
+  {% if password_reset_url %}
+  <div class="password-reset-link">
+    <a href="{{ password_reset_url }}">{% translate 'Forgotten your password or username?' %}</a>
+  </div>
+  {% endif %}
+  <div class="w-full h-36 my-12 flex flex-col justify-center items-center content-center gap-y-8">
+    <input 
+        type="submit" 
+        value="{% translate 'Enter' %}"
+        class="w-full h-12 cursor-pointer !bg-cyan-500 shadow-lg !shadow-cyan-500/50 !text-base !hover:text-lg !hover:text-backgroundBody !hover:bg-cyan-400 !transition !ease-in-out !delay-150 !duration-200 !rounded-md"
+    >
+  </div>
+</form>
+</div>
+</div>
+</div>
+{% endblock %}

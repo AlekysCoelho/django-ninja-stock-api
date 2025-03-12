@@ -46,12 +46,45 @@ class UserAdmin(auth_admin.UserAdmin):
     list_display = [
         "username",
         "email",
-        "bio",
+        "failed_login_attemps",
+        "last_failed_login",
+        "account_locked_until",
     ]
     fieldsets = auth_admin.UserAdmin.fieldsets + (
-        ("Custom fields", {"fields": ("bio",)}),
+        (
+            _("Security info"),
+            {
+                "fields": (
+                    "failed_login_attemps",
+                    "last_failed_login",
+                    "account_locked_until",
+                ),
+                "classes": _(
+                    "collapse",
+                ),
+            },
+        ),
+        (
+            _("Personal info"),
+            {"fields": ("bio",)},
+        ),
     )
+    add_fieldsets = (
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": ("username", "usable_password", "password1", "password2"),
+            },
+        ),
+    )
+    readonly_fields = [
+        "failed_login_attemps",
+        "last_failed_login",
+        "account_locked_until",
+    ]
+    search_fields = ["username", "email"]
+    ordering = ["date_joined"]
 
 
-# admin_site.register(UserAdmin)
 admin_site.register(Group)

@@ -1,0 +1,79 @@
+{% extends "admin/login.html" %}
+{% load i18n static %}
+{% block 'body' %}
+    <div class="flex justify-center items-center text-white w-full h-screen">
+        <div class="w-1/2 max-w-xl h-3/4 flex flex-col justify-center items-center gap-y-24 border border-cyan-500 rounded-xl shadow-lg shadow-cyan-600">
+            <h1 class="font-Poetsen mt-8 text-center text-2xl drop-shadow-2xl">{% trans "Stock Admin Area" %}</h1>
+
+            {% if form.non_field_errors %}
+            <div class="errornote" role="alert">
+                {% for error in form.non_field_errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="h-full w-3/4 flex flex-col content-center justify-center">
+                <form 
+                    action="{% url 'login' %}"
+                    method="post" 
+                    id="login-form"
+                    class="h-full flex flex-col justify-items-start items-center font-Lato gap-y-12"
+                >
+                    {% csrf_token %}
+
+                    <div class="w-full h-10 flex">
+                        {% if messages %}
+                            {% for message in messages %}
+                                <section class="w-full h-full text-gray-200 text-center {{ message.tags }} border rounded-xl text-sm leading-9">{{ message }}</section>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="w-full flex flex-col justify-items-start items-center gap-y-3.5">
+                        <label for="{{ form.username.id_for_label }}" class="w-full font-semibold">{{ form.username.label }}</label>
+                        <input 
+                            type="email" 
+                            name="{{ form.username.html_name }}" 
+                            id="{{ form.username.id_for_label }}"
+                            autocomplete="email" required
+                            class="w-full h-10 text-sm pl-2 text-gray-300 tracking-widest bg-transparent border rounded-md border-cyan-600 hover:border-cyan-400 focus:border-cyan-500 focus:ring-cyan-500 focus:ring-1 focus:outline-none resize-none"
+                            placeholder="Type your email..." 
+                        />
+
+                        <label for="{{ form.password.id_for_label }}" class="w-full font-semibold">{{ form.password.label }}:</label>
+                        <input 
+                            type="password" 
+                            name="{{ form.password.html_name }}" 
+                            id="{{ form.password.id_for_label }}"
+                            autocomplete="current-password" required
+                            class="w-full h-10 pl-2 text-gray-300 tracking-widest bg-transparent border rounded-md border-cyan-600 hover:border-cyan-400 focus:border-cyan-500 focus:ring-cyan-500 focus:ring-1 focus:outline-none resize-none"
+                            placeholder="Type your password..." 
+                        />
+                    </div>
+
+                    {% url 'admin_password_reset' as password_reset_url %}
+                    {% if password_reset_url %}
+                    <a
+                        href="{{ password_reset_url }}"
+                        class="w-full flex justify-end hover:text-cyan-500 transition ease-in delay-100"
+                    >
+                        {% trans 'Forgotten your password?' %}
+                    </a>
+                    {% endif %}
+
+                    <div 
+                        class="w-full h-36 my-12 flex flex-col justify-center items-center content-center gap-y-8"
+                    >
+                        {% comment %} <input
+                            class="w-full h-12 cursor-pointer bg-cyan-500 shadow-lg shadow-cyan-500/50 text-base hover:text-lg hover:text-backgroundBody hover:bg-cyan-400 transition ease-in-out delay-150 duration-200 rounded-md"
+                            type="submit"
+                            value="{% trans 'Log in' %}"
+                        /> {% endcomment %}
+                        <button type="submit" class="w-full h-12 cursor-pointer bg-cyan-500 shadow-lg shadow-cyan-500/50 text-base hover:text-lg hover:text-backgroundBody hover:bg-cyan-400 transition ease-in-out delay-150 duration-200 rounded-md">{% trans 'Log in' %}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
