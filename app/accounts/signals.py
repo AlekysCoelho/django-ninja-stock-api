@@ -13,7 +13,9 @@ security_logger = get_logger("security")
 
 
 @receiver(user_logged_in)
-def user_logged_handler(sender, request: HttpRequest, user: UserModel, **kwargs) -> None:
+def user_logged_handler(
+    sender, request: HttpRequest, user: UserModel, **kwargs
+) -> None:
     """
     Records successful login and resets fail counters.
 
@@ -47,7 +49,9 @@ def user_logged_handler(sender, request: HttpRequest, user: UserModel, **kwargs)
 
 
 @receiver(user_login_failed)
-def user_login_failed_handler(sender, credentials, request: HttpRequest, **kwargs) -> None:
+def user_login_failed_handler(
+    sender, credentials, request: HttpRequest, **kwargs
+) -> None:
     """
     Controls login failures to prevent brute force attacks.
 
@@ -57,7 +61,7 @@ def user_login_failed_handler(sender, credentials, request: HttpRequest, **kwarg
         request: The HTTP request
         kwargs: Additional arguments
     """
-    username = credentials.get("username", "")  # Usar credentials ao invés de request.META
+    username = credentials.get("username", "")
     ip = request.META.get("REMOTE_ADDR", "") if request else "N/A"
     user_agent = request.META.get("HTTP_USER_AGENT", "") if request else "N/A"
 
@@ -68,7 +72,11 @@ def user_login_failed_handler(sender, credentials, request: HttpRequest, **kwarg
 
     try:
         with transaction.atomic():
-            user = User.objects.get(email=username) if "@" in username else User.objects.get(username=username)
+            user = (
+                User.objects.get(email=username)
+                if "@" in username
+                else User.objects.get(username=username)
+            )
 
             # Increment failure counter
             user.failed_login_attemps += 1
@@ -77,7 +85,9 @@ def user_login_failed_handler(sender, credentials, request: HttpRequest, **kwarg
             # Implements temporary blocking after multiple attempts
             if user.failed_login_attemps >= 5:
                 lock_minutes = min(30, 5 * (user.failed_login_attemps - 4))
-                user.account_locked_until = timezone.now() + timezone.timedelta(minutes=lock_minutes)
+                user.account_locked_until = timezone.now() + timezone.timedelta(
+                    minutes=lock_minutes
+                )
                 security_logger.warning(
                     f"Account temporarily blocked: {username} for {lock_minutes} minutes",
                     extra={"username": username, "lock_minutes": lock_minutes},

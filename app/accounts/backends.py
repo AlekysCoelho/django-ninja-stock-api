@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.messages import constants
+from django.core.cache import cache
 from django.http import HttpRequest
 from django.utils.translation import gettext_lazy as _
 
@@ -49,8 +50,6 @@ class EmailOrUsernameModelBackend(ModelBackend):
 
         username_lower = username.lower()
         key = f"login_attempts:{username_lower}"
-        # Assuming cache is imported and configured
-        from django.core.cache import cache
 
         attempts = cache.get(key, 0)
         cache.set(key, attempts + 1, 60 * 15)
@@ -63,16 +62,14 @@ class EmailOrUsernameModelBackend(ModelBackend):
             return None
 
         info_logger.info(f"Attempting authentication with username/email: {username}")
-        print("DENTRO DO BACKEDNDS")
-        print(f"Attempting authentication with username/email: {username}")
 
         is_email = self.is_valid_email(username)
         login_type = "email" if is_email else "username"
 
         try:
-            # Primeiro verificamos se é um superusuário tentando fazer login com username
+            # Check if there is a superuser trying to log in with username
             if not is_email:
-                # Verificar se existe um superusuário com este username
+                # Check if there is a superuser with this username
                 try:
                     potential_superuser = User.objects.get(username=username)
                     if potential_superuser.is_superuser:
@@ -80,7 +77,9 @@ class EmailOrUsernameModelBackend(ModelBackend):
                             messages.add_message(
                                 request,
                                 constants.ERROR,
-                                _("Administrators must log in using their email address."),
+                                _(
+                                    "Administrators must log in using their email address."
+                                ),
                             )
                             return None
                         security_logger.warning(
@@ -91,7 +90,6 @@ class EmailOrUsernameModelBackend(ModelBackend):
                 except User.DoesNotExist:
                     pass
 
-            # Continua a lógica normal de autenticação
             if is_email:
                 user = User.objects.get(email=username)
             else:

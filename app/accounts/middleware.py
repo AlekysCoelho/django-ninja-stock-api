@@ -83,7 +83,7 @@ class RequestValidationMiddleware:
 
         patterns = [
             r"(?i)<script.*?>",  # XSS
-            r"(?i)(?:--|%27|%22)[\s]*$",  # SQL Injection refinado
+            r"(?i)(?:--|%27|%22)[\s]*$",  # SQL Injection
             r"(?i)(?:union\s+select|exec\s+xp_|system\s*\(|eval\s*\(|rm\s+-rf)",  # More injections
         ]
 
@@ -112,7 +112,6 @@ class SuperUserEmailLoginMiddleware:
 
             backend = EmailOrUsernameModelBackend()
 
-            # Se não é um email e temos um usuário com esse username
             if not backend.is_valid_email(username):
                 from django.contrib.auth import get_user_model
 

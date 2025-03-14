@@ -34,7 +34,6 @@ class CustomAdminSite(AdminSite):
     login_form = CustomAdminAuthenticationForm
 
 
-# Create an instance of the custom admin site
 admin_site = CustomAdminSite()
 
 
