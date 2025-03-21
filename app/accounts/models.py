@@ -15,7 +15,7 @@ class User(AbstractUser):
         validators=[validate_email],
         error_messages={"unique": _("User with this email already exists.")},
     )
-    failed_login_attemps = models.PositiveSmallIntegerField(default=0)
+    failed_login_attempts = models.PositiveSmallIntegerField(default=0)
     last_failed_login = models.DateTimeField(null=True, blank=True)
     account_locked_until = models.DateTimeField(null=True, blank=True)
     password_changed_at = models.DateTimeField(auto_now_add=True)

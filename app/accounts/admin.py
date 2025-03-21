@@ -45,7 +45,7 @@ class UserAdmin(auth_admin.UserAdmin):
     list_display = [
         "username",
         "email",
-        "failed_login_attemps",
+        "failed_login_attempts",
         "last_failed_login",
         "account_locked_until",
     ]
@@ -54,7 +54,7 @@ class UserAdmin(auth_admin.UserAdmin):
             _("Security info"),
             {
                 "fields": (
-                    "failed_login_attemps",
+                    "failed_login_attempts",
                     "last_failed_login",
                     "account_locked_until",
                 ),
@@ -78,7 +78,7 @@ class UserAdmin(auth_admin.UserAdmin):
         ),
     )
     readonly_fields = [
-        "failed_login_attemps",
+        "failed_login_attempts",
         "last_failed_login",
         "account_locked_until",
     ]

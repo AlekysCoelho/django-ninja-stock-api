@@ -26,13 +26,13 @@ def user_logged_handler(
         kwargs: Additional arguments
     """
     with transaction.atomic():
-        if user.failed_login_attemps > 0:
-            user.failed_login_attemps = 0
+        if user.failed_login_attempts > 0:
+            user.failed_login_attempts = 0
             user.last_failed_login = None
             user.account_locked_until = None
             user.save(
                 update_fields=[
-                    "failed_login_attemps",
+                    "failed_login_attempts",
                     "last_failed_login",
                     "account_locked_until",
                 ]
@@ -78,13 +78,9 @@ def user_login_failed_handler(
                 else User.objects.get(username=username)
             )
 
-            # Increment failure counter
-            user.failed_login_attemps += 1
-            user.last_failed_login = timezone.now()
-
             # Implements temporary blocking after multiple attempts
-            if user.failed_login_attemps >= 5:
-                lock_minutes = min(30, 5 * (user.failed_login_attemps - 4))
+            if user.failed_login_attempts >= 5:
+                lock_minutes = min(30, 5 * (user.failed_login_attempts - 4))
                 user.account_locked_until = timezone.now() + timezone.timedelta(
                     minutes=lock_minutes
                 )
@@ -93,9 +89,22 @@ def user_login_failed_handler(
                     extra={"username": username, "lock_minutes": lock_minutes},
                 )
 
+            # Increment the counter
+            user.failed_login_attempts += 1
+            user.last_failed_login = timezone.now()
+
+            # Log the number of failed attempts
+            security_logger.info(
+                f"Failed login attempts for {username}: {user.failed_login_attempts}",
+                extra={
+                    "username": username,
+                    "failed_login_attempts": user.failed_login_attempts,
+                },
+            )
+
             user.save(
                 update_fields=[
-                    "failed_login_attemps",
+                    "failed_login_attempts",
                     "last_failed_login",
                     "account_locked_until",
                 ]
