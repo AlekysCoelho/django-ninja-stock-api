@@ -28,7 +28,10 @@ ruff = "^0.9.7"
 taskipy = "^1.14.1"
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = [
+    "tests", 
+    "app/*/tests"
+]
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
 DJANGO_SETTINGS_MODULE = "app.settings"
