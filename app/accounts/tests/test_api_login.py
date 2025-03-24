@@ -3,7 +3,7 @@ from datetime import timedelta
 import pytest  # noqa F401
 from django.utils import timezone
 
-from tests.factories import UserFactory
+from app.accounts.tests.factories import UserFactory
 from tests.utils import NinjaSessionClient
 
 
