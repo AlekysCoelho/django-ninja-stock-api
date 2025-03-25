@@ -7,7 +7,7 @@ from django.test import RequestFactory
 
 from app.accounts.backends import EmailOrUsernameModelBackend
 from app.accounts.models import User
-from tests.factories import SuperUserFactory, UserFactory
+from app.accounts.tests.factories import SuperUserFactory, UserFactory
 
 authenticate_backend = EmailOrUsernameModelBackend()
 

@@ -83,7 +83,7 @@ format = "ruff check . --fix && ruff format ."
 run = "python3 manage.py runserver"
 create_app = "python3 manage.py startapp"
 pre_test = "task lint"
-test = "pytest tests/ -s -x --cov=app -vv"
+test = "pytest tests/ app/*/tests/ -s -x --cov=app -vv"
 post_test = "coverage html"
 
 [build-system]
