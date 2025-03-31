@@ -1,7 +1,4 @@
-import logging
+import factory
+from faker import Faker
 
-import factory  # noqa
-
-from app.logs import get_logger
-
-test_logger = get_logger("test", logging.WARNING)
+faker = Faker()

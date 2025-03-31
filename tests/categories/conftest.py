@@ -1,7 +1,7 @@
 import pytest
 from pytest_factoryboy import register
 
-from app.products.tests.factories import CategoryFactory
+from tests.categories.factories import CategoryFactory
 
 register(CategoryFactory)
 

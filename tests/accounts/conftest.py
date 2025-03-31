@@ -3,7 +3,7 @@ from django.conf import settings
 from pytest_factoryboy import register
 
 from app.accounts.api import auth_router
-from app.accounts.tests.factories import SuperUserFactory, UserFactory
+from tests.accounts.factories import SuperUserFactory, UserFactory
 from tests.utils import NinjaSessionClient
 
 register(UserFactory)
